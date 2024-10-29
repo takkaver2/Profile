@@ -8,11 +8,17 @@ document.addEventListener("DOMContentLoaded", function() {
     if (logoImage) {
         setTimeout(() => {
             logoImage.classList.add('appear');
+            if (video) {
+                video.load();
+            }
         }, 100);
 
         setTimeout(() => {
             logoAnimation.style.opacity = '0';
             mainContent.style.opacity = '1';
+            if (video) {
+                playVideo();
+            }
         }, 2000);
 
         setTimeout(() => {
@@ -20,18 +26,24 @@ document.addEventListener("DOMContentLoaded", function() {
         }, 2500);
     }
 
-    // 動画の自動再生を安定的に行う関数
+    // 動画の自動再生を最適化
     function playVideo() {
-        if (video.readyState >= 2) {
-            video.play().catch(function(err) {
-                console.error('Failed to play video:', err);
+        if (!video) return;
+        
+        // 動画の読み込みを優先
+        video.preload = "auto";
+        
+        // メモリ使用量を最適化
+        video.removeAttribute('controls');
+        
+        const playPromise = video.play();
+        
+        if (playPromise !== undefined) {
+            playPromise.catch(function(error) {
+                console.log("Video play failed:", error);
+                // エラー時のフォールバック処理
+                setTimeout(playVideo, 1000); // 1秒後にリトライ
             });
-        } else {
-            video.addEventListener('canplaythrough', function() {
-                video.play().catch(function(err) {
-                    console.error('Failed to play video:', err);
-                });
-            }, { once: true });
         }
     }
 
