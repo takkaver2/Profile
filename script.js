@@ -3,61 +3,62 @@ document.addEventListener("DOMContentLoaded", function() {
     const mainContent = document.getElementById("main-content");
     const video = document.getElementById("background-video");
 
+    // 動画の読み込みを最適化
+    function initVideo() {
+        if (!video) return;
+        
+        // 動画の読み込みを遅延させる
+        setTimeout(() => {
+            video.preload = "auto";
+            video.load();
+        }, 2500); // ロゴアニメーション終了後に読み込み開始
+    }
+
     // ロゴアニメーションの設定
     const logoImage = document.getElementById('logo-image');
     if (logoImage) {
         setTimeout(() => {
             logoImage.classList.add('appear');
-            if (video) {
-                video.load();
-            }
         }, 100);
 
         setTimeout(() => {
             logoAnimation.style.opacity = '0';
             mainContent.style.opacity = '1';
-            if (video) {
-                playVideo();
-            }
+            initVideo(); // 動画の初期化を開始
         }, 2000);
 
         setTimeout(() => {
             logoAnimation.style.display = 'none';
+            if (video) {
+                playVideo();
+            }
         }, 2500);
     }
 
-    // 動画の自動再生を最適化
+    // 動画の再生を最適化
     function playVideo() {
         if (!video) return;
-        
-        // 動画の読み込みを優先
-        video.preload = "auto";
-        
-        // メモリ使用量を最適化
-        video.removeAttribute('controls');
         
         const playPromise = video.play();
         
         if (playPromise !== undefined) {
             playPromise.catch(function(error) {
                 console.log("Video play failed:", error);
-                // エラー時のフォールバック処理
-                setTimeout(playVideo, 1000); // 1秒後にリトライ
+                setTimeout(playVideo, 1000);
             });
         }
     }
 
-    video.addEventListener('loadedmetadata', playVideo);
-    video.addEventListener('canplaythrough', playVideo);
+    // 動画の再生イベントリスナー
+    video.addEventListener('canplaythrough', function() {
+        if (video.paused) {
+            playVideo();
+        }
+    }, { once: true }); // イベントリスナーを一度だけ実行
 
-    document.addEventListener('click', function() {
-        if (!video.paused) return;
-        playVideo();
-    }, { once: true });
-
-// ページ読み込み時にテーマを設定
-// 常にダークモードを適用
-document.body.classList.add('dark-theme');
+    // ページ読み込み時にテーマを設定
+    // 常にダークモードを適用
+    document.body.classList.add('dark-theme');
 
     // ページ読み込み時にロゴとハンバーガーメニューの色を設定
     updateLogoColor();
